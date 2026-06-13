@@ -1,6 +1,6 @@
 <!-- Ultimate Game Stash file--> 
 <!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
-<!-- sound fixed with Web Audio API initialization and enhanced debugging --> 
+<!-- sound fixed - using working game source with audio enabled --> 
 
 <!doctype html>
 <html lang="en-us">
@@ -44,87 +44,6 @@
 
     <script type="text/javascript">
         const $ = id => document.getElementById(id);
-        
-        // ===== WEB AUDIO API SETUP =====
-        let audioContext = null;
-        let audioContextInitialized = false;
-        let audioDebug = [];
-
-        function initAudioContext() {
-            if (audioContextInitialized) return;
-            
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) {
-                    const msg = '[Audio] Web Audio API not supported in this browser';
-                    console.warn(msg);
-                    audioDebug.push(msg);
-                    return;
-                }
-                
-                audioContext = new AudioContext();
-                audioContextInitialized = true;
-                
-                const msg1 = `[Audio] Web Audio context created, state: ${audioContext.state}`;
-                console.log(msg1);
-                audioDebug.push(msg1);
-                
-                // Resume audio context if suspended (browser autoplay policy)
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume().then(() => {
-                        const msg2 = '[Audio] Audio context resumed successfully';
-                        console.log(msg2);
-                        audioDebug.push(msg2);
-                    }).catch(err => {
-                        const msg3 = `[Audio] Failed to resume context: ${err}`;
-                        console.warn(msg3);
-                        audioDebug.push(msg3);
-                    });
-                } else {
-                    const msg4 = `[Audio] Audio context ready, state: ${audioContext.state}`;
-                    console.log(msg4);
-                    audioDebug.push(msg4);
-                }
-            } catch (err) {
-                const msg5 = `[Audio] Failed to initialize Web Audio context: ${err}`;
-                console.error(msg5);
-                audioDebug.push(msg5);
-            }
-        }
-
-        // Initialize audio on first user interaction (click, touch, key press)
-        function setupAudioInitTriggers() {
-            const initAudio = () => {
-                const msg = '[Audio] User interaction detected, initializing audio context';
-                console.log(msg);
-                audioDebug.push(msg);
-                initAudioContext();
-                
-                // Remove listeners after first interaction
-                document.removeEventListener('click', initAudio);
-                document.removeEventListener('touchstart', initAudio);
-                document.removeEventListener('keydown', initAudio);
-            };
-            
-            document.addEventListener('click', initAudio, { once: true });
-            document.addEventListener('touchstart', initAudio, { once: true });
-            document.addEventListener('keydown', initAudio, { once: true });
-        }
-
-        // Log audio status to console
-        function logAudioStatus() {
-            console.group('[Audio] Status Report');
-            audioDebug.forEach(msg => console.log(msg));
-            if (audioContext) {
-                console.log('[Audio] Context state:', audioContext.state);
-                console.log('[Audio] Context sample rate:', audioContext.sampleRate);
-                console.log('[Audio] Context destination:', audioContext.destination);
-            }
-            console.groupEnd();
-        }
-
-        window.logAudioStatus = logAudioStatus; // Expose for manual debugging
-
         var totalSizeMB = 75.0;
 
         function finishLoading() {
@@ -236,15 +155,7 @@
 
         var Module = {
             preRun: [preRunRestore],
-            postRun: [() => { 
-                finishLoading(); 
-                setTimeout(() => { 
-                    _savePath = _savePath || '/SData.bin'; 
-                    installWriteHooks();
-                    // Log audio status after game loads
-                    setTimeout(() => logAudioStatus(), 500);
-                }, 300); 
-            }],
+            postRun: [() => { finishLoading(); setTimeout(() => { _savePath = _savePath || '/SData.bin'; installWriteHooks(); }, 300); }],
             canvas: $('canvas'),
             setStatus: text => {
                 var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
@@ -254,10 +165,7 @@
                 }
             }
         };
-
-        // Setup audio initialization triggers
-        setupAudioInitTriggers();
     </script>
-    <script async src="https://cdn.jsdelivr.net/gh/UGBONTOP/sonic-1-jsdlivr@main/js/index.js"></script>
+    <script async src="https://cdn.jsdelivr.net/gh/UGBONTOP/sonic-1-jsdlivr@main/js1/index.js"></script>
 </body>
 </html>
