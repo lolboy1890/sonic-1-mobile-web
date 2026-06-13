@@ -44,6 +44,52 @@
 
     <script type="text/javascript">
         const $ = id => document.getElementById(id);
+        // Web Audio API Context - Respects Browser Autoplay Policies
+let audioContext = null;
+let audioContextInitialized = false;
+
+function initAudioContext() {
+    if (audioContextInitialized) return;
+    
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) {
+            console.warn('[Audio] Web Audio API not supported in this browser');
+            return;
+        }
+        
+        audioContext = new AudioContext();
+        audioContextInitialized = true;
+        
+        // Resume audio context if suspended (browser autoplay policy)
+        if (audioContext.state === 'suspended') {
+            audioContext.resume().then(() => {
+                console.log('[Audio] Audio context resumed');
+            }).catch(err => {
+                console.warn('[Audio] Failed to resume context:', err);
+            });
+        }
+        
+        console.log('[Audio] Web Audio context initialized, state:', audioContext.state);
+    } catch (err) {
+        console.error('[Audio] Failed to initialize Web Audio context:', err);
+    }
+}
+
+// Initialize audio on first user interaction (click, touch, key press)
+function setupAudioInitTriggers() {
+    const initAudio = () => {
+        initAudioContext();
+        // Remove listeners after first interaction
+        document.removeEventListener('click', initAudio);
+        document.removeEventListener('touchstart', initAudio);
+        document.removeEventListener('keydown', initAudio);
+    };
+    
+    document.addEventListener('click', initAudio, { once: true });
+    document.addEventListener('touchstart', initAudio, { once: true });
+    document.addEventListener('keydown', initAudio, { once: true });
+}
         var totalSizeMB = 75.0;
 
         function finishLoading() {
@@ -165,6 +211,8 @@
                 }
             }
         };
+        // Setup audio initialization triggers
+setupAudioInitTriggers();
     </script>
     <script async src="https://cdn.jsdelivr.net/gh/UGBONTOP/sonic-1-jsdlivr@main/js/index.js"></script>
 </body>
